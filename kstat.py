@@ -8,28 +8,21 @@ def _process_kstat(kstat, cout, digitOnly):
     data = {}
     for line in cout.splitlines():
         key, value = line.split(":")[-1].split()
-        if digitOnly:
-            if value.isdigit():
-                data[key] = value
-        else:
+        if value.isdigit():
+            data[key] = int(value)
+        elif not digitOnly:
             data[key] = value
     return data
 
-
+def _kstat(cmd, lx=False):
+    kstat = LX_KSTAT if lx else KSTAT
+    cmd = kstat + ' ' + cmd
+    return __salt__['cmd.run'](cmd)
 
 def memory_cap(lx=False, digitOnly=False):
-    if lx:
-        cmd = [ LX_KSTAT, '-p -m memory_cap -c zone_memory_cap']
-    else:
-        cmd = [ KSTAT, '-p -m memory_cap -c zone_memory_cap']
-    output = __salt__['cmd.run'](' '.join(cmd))
+    output = _kstat('-p -m memory_cap -c zone_memory_cap', lx)
     return _process_kstat('memory_cap', output, digitOnly)
 
-
 def zone_zfs(lx=False, digitOnly=False):
-    if lx:
-        cmd = [ LX_KSTAT, '-p -m zone_vfs -c zone_vfs']
-    else:
-        cmd = [ KSTAT, '-p -m zone_vfs -c zone_vfs']
-    output = __salt__['cmd.run'](' '.join(cmd))
+    output = _kstat('-p -m zone_vfs -c zone_vfs', lx)
     return _process_kstat('memory_cap', output, digitOnly)
